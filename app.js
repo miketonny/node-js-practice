@@ -1,17 +1,63 @@
-console.log('Staring app.js');
-
-const fs = require('fs');
-const os = require('os');
+const fs = require('fs'); 
 const _ = require('lodash');
+const yargs = require('yargs');
+
 const notes = require('./notes');
 
-var filteredArray = _.uniq(['Mike', 'Mike', 1,2,3 ,4 ,5,1]);
-console.log(filteredArray);
 
+const titleOptions =  {
+        describe: 'Title of note',
+        demand: true,
+        alias: 't'
+}
 
-// var res = notes.add(5, 6);
-// console.log(res);
+const bodyOptions = {
+        describe: 'Body of note',
+        demand: true,
+        alias: 'b'
+    };
 
-// var user = os.userInfo();
-// // console.log(user);
-// fs.appendFileSync('greetings.txt', `Hello ${user.username}! You are ${notes.age}`);
+const argv = yargs
+            .command('add', 'Add a new note', {
+                title:titleOptions,
+                body:bodyOptions
+            })
+            .command('list', 'List all notes')
+            .command('read', 'Read a note', {
+                title:titleOptions
+            })
+            .command('remove', 'Remove a note', {
+                title:titleOptions
+            })
+            .help()
+            .argv;
+var command = argv._[0]; 
+
+if (command === 'add'){ 
+   var note = notes.addNote(argv.title, argv.body);
+   if(note){
+       console.log('Note created');
+       notes.logNote(note);
+   }else{
+        console.log('note taken');
+   }
+} else if(command === 'list'){
+    var allNotes = notes.getAll();
+    console.log(`Printing ${allNotes.length} note(s).`);
+    allNotes.forEach(n => notes.logNote(n));
+} else if(command === 'read') {
+    let note = notes.getNote(argv.title);
+    if(note){
+        console.log('Note read');
+        notes.logNote(note);
+    }else{
+        console.log('note not exist');
+    }
+} else if(command === 'remove'){
+    let noteRemoved = notes.removeNote(argv.title);
+    var message = noteRemoved ? 'Note was removed' : 'Note not found';
+    console.log(message);
+}else {
+    console.log('Command not recognized');
+}
+
